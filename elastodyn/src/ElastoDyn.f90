@@ -2044,9 +2044,9 @@ SUBROUTINE ED_UpdateDiscState( t, n, u, p, x, xd, z, OtherState, m, ErrStat, Err
 
       REAL(DbKi),                   INTENT(IN   )  :: t           !< Current simulation time in seconds
       INTEGER(IntKi),               INTENT(IN   )  :: n           !< Current step of the simulation: t = n*Interval
-      TYPE(ED_InputType),           INTENT(IN   )  :: u           !< Inputs at t
+      TYPE(ED_InputType),           INTENT(INOUT)  :: u           !< Inputs at t
       TYPE(ED_ParameterType),       INTENT(IN   )  :: p           !< Parameters
-      TYPE(ED_ContinuousStateType), INTENT(IN   )  :: x           !< Continuous states at t
+      TYPE(ED_ContinuousStateType), INTENT(INOUT)  :: x           !< Continuous states at t
       TYPE(ED_DiscreteStateType),   INTENT(INOUT)  :: xd          !< Input: Discrete states at t;
                                                                   !!   Output: Discrete states at t + Interval
       TYPE(ED_ConstraintStateType), INTENT(IN   )  :: z           !< Constraint states at t
@@ -2073,9 +2073,9 @@ SUBROUTINE ED_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, m, z_re
 !..................................................................................................................................
 
       REAL(DbKi),                   INTENT(IN   )  :: Time        !< Current simulation time in seconds
-      TYPE(ED_InputType),           INTENT(IN   )  :: u           !< Inputs at Time
+      TYPE(ED_InputType),           INTENT(INOUT)  :: u           !< Inputs at Time
       TYPE(ED_ParameterType),       INTENT(IN   )  :: p           !< Parameters
-      TYPE(ED_ContinuousStateType), INTENT(IN   )  :: x           !< Continuous states at Time
+      TYPE(ED_ContinuousStateType), INTENT(INOUT)  :: x           !< Continuous states at Time
       TYPE(ED_DiscreteStateType),   INTENT(IN   )  :: xd          !< Discrete states at Time
       TYPE(ED_ConstraintStateType), INTENT(IN   )  :: z           !< Constraint states at Time (possibly a guess)
       TYPE(ED_OtherStateType),      INTENT(IN   )  :: OtherState  !< Other states
@@ -3518,7 +3518,7 @@ END SUBROUTINE SetPrimaryParameters
 !! It assumes the parameters are set and that InputFileData contains initial conditions for the continuous states.
 SUBROUTINE Init_ContStates( x, p, InputFileData, OtherState, ErrStat, ErrMsg  )
 !..................................................................................................................................
-   TYPE(ED_ContinuousStateType), INTENT(OUT)    :: x                 !< Initial continuous states
+   TYPE(ED_ContinuousStateType), INTENT(INOUT)  :: x                 !< Initial continuous states
    TYPE(ED_ParameterType),       INTENT(IN)     :: p                 !< Parameters of the structural dynamics module
    TYPE(ED_InputFile),           INTENT(IN)     :: InputFileData     !< Data stored in the module's input file
    TYPE(ED_OtherStateType),      INTENT(IN)     :: OtherState        !< Initial other states
@@ -3681,7 +3681,7 @@ SUBROUTINE Init_MiscOtherStates( m, OtherState, p, x, InputFileData, ErrStat, Er
    TYPE(ED_MiscVarType),         INTENT(OUT)    :: m                 !< Initial misc variables
    TYPE(ED_OtherStateType),      INTENT(OUT)    :: OtherState        !< Initial other states
    TYPE(ED_ParameterType),       INTENT(IN)     :: p                 !< Parameters of the structural dynamics module
-   TYPE(ED_ContinuousStateType), INTENT(IN)     :: x                 !< Initial continuous states
+   TYPE(ED_ContinuousStateType), INTENT(INOUT)  :: x                 !< Initial continuous states
    TYPE(ED_InputFile),           INTENT(IN)     :: InputFileData     !< Data stored in the module's input file
    INTEGER(IntKi),               INTENT(OUT)    :: ErrStat           !< Error status
    CHARACTER(*),                 INTENT(OUT)    :: ErrMsg            !< Error message
@@ -5972,7 +5972,7 @@ SUBROUTINE SetCoordSy( t, CoordSys, RtHSdat, BlPitch, p, x, ErrStat, ErrMsg )
    TYPE(ED_CoordSys),            INTENT(INOUT) :: CoordSys                      !< The coordinate systems to be set
    TYPE(ED_RtHndSide),           INTENT(INOUT) :: RtHSdat                       !< data from the RtHndSid module
    TYPE(ED_ParameterType),       INTENT(IN)    :: p                             !< The module's parameters
-   TYPE(ED_ContinuousStateType), INTENT(IN)    :: x                             !< The module's continuous states
+   TYPE(ED_ContinuousStateType), INTENT(INOUT) :: x                             !< The module's continuous states
 
    INTEGER(IntKi),               INTENT(OUT)    :: ErrStat                      !< Error status
    CHARACTER(*),                 INTENT(OUT)    :: ErrMsg                       !< Error message
@@ -6611,7 +6611,7 @@ SUBROUTINE CalculatePositions( p, x, CoordSys, RtHSdat )
 
       ! Passed variables
    TYPE(ED_ParameterType),       INTENT(IN   )  :: p           !< Parameters
-   TYPE(ED_ContinuousStateType), INTENT(IN   )  :: x           !< Continuous states at Time
+   TYPE(ED_ContinuousStateType), INTENT(INOUT)  :: x           !< Continuous states at Time
    TYPE(ED_CoordSys),            INTENT(IN   )  :: CoordSys    !< The coordinate systems that have been set for these states/time
    TYPE(ED_RtHndSide),           INTENT(INOUT)  :: RtHSdat     !< data from the RtHndSid module (contains positions to be set)
 
@@ -6753,7 +6753,7 @@ SUBROUTINE CalculateAngularPosVelPAcc( p, x, CoordSys, RtHSdat, ErrStat, ErrMsg 
 
       ! Passed variables
    TYPE(ED_ParameterType),       INTENT(IN   )  :: p           !< Parameters
-   TYPE(ED_ContinuousStateType), INTENT(IN   )  :: x           !< Continuous states at Time
+   TYPE(ED_ContinuousStateType), INTENT(INOUT)  :: x           !< Continuous states at Time
    TYPE(ED_CoordSys),            INTENT(IN   )  :: CoordSys    !< The coordinate systems that have been set for these states/time
    TYPE(ED_RtHndSide),           INTENT(INOUT)  :: RtHSdat     !< data from the RtHndSid module (contains positions to be set)
 
@@ -7003,7 +7003,7 @@ SUBROUTINE CalculateLinearVelPAcc( p, x, CoordSys, RtHSdat )
 
       ! Passed variables
    TYPE(ED_ParameterType),       INTENT(IN   )  :: p           !< Parameters
-   TYPE(ED_ContinuousStateType), INTENT(IN   )  :: x           !< Continuous states at Time
+   TYPE(ED_ContinuousStateType), INTENT(INOUT)  :: x           !< Continuous states at Time
    TYPE(ED_CoordSys),            INTENT(IN   )  :: CoordSys    !< The coordinate systems that have been set for these states/time
    TYPE(ED_RtHndSide),           INTENT(INOUT)  :: RtHSdat     !< data from the RtHndSid module (contains positions to be set)
 
@@ -7471,9 +7471,9 @@ SUBROUTINE CalculateForcesMoments( p, x, CoordSys, u, RtHSdat )
 
       ! Passed variables
    TYPE(ED_ParameterType),       INTENT(IN   )  :: p           !< Parameters
-   TYPE(ED_ContinuousStateType), INTENT(IN   )  :: x           !< Continuous states at Time
+   TYPE(ED_ContinuousStateType), INTENT(INOUT)  :: x           !< Continuous states at Time
    TYPE(ED_CoordSys),            INTENT(IN   )  :: CoordSys    !< The coordinate systems that have been set for these states/time
-   TYPE(ED_InputType),           INTENT(IN   )  :: u           !< The aero (blade) & nacelle forces/moments
+   TYPE(ED_InputType),           INTENT(INOUT)  :: u           !< The aero (blade) & nacelle forces/moments
    TYPE(ED_RtHndSide),           INTENT(INOUT)  :: RtHSdat     !< data from the RtHndSid module (contains positions to be set)
 
       ! Local variables
@@ -8129,9 +8129,9 @@ SUBROUTINE FillAugMat( p, x, CoordSys, u, HSSBrTrq, RtHSdat, AugMat )
 
       ! Passed variables
    TYPE(ED_ParameterType),       INTENT(IN   )  :: p           !< Parameters
-   TYPE(ED_ContinuousStateType), INTENT(IN   )  :: x           !< Continuous states at Time
+   TYPE(ED_ContinuousStateType), INTENT(INOUT)  :: x           !< Continuous states at Time
    TYPE(ED_CoordSys),            INTENT(IN   )  :: CoordSys    !< The coordinate systems that have been set for these states/time
-   TYPE(ED_InputType),           INTENT(IN   )  :: u           !< The aero blade forces/moments
+   TYPE(ED_InputType),           INTENT(INOUT)  :: u           !< The aero blade forces/moments
    TYPE(ED_RtHndSide),           INTENT(IN   )  :: RtHSdat     !< data from the RtHndSid module (contains positions to be set)
    REAL(ReKi),                   INTENT(IN )    :: HSSBrTrq    !<  SIGN( u%HSSBrTrqC, x%QDT(DOF_GeAz) ) or corrected value from FixHSS
    REAL(R8Ki),                   INTENT(OUT)    :: AugMat(:,:) !< the return matrix 
@@ -8956,7 +8956,7 @@ SUBROUTINE Init_u( u, p, x, InputFileData, m, ErrStat, ErrMsg )
 
    TYPE(ED_InputType),           INTENT(INOUT)  :: u                 !< Inputs to be allocated
    TYPE(ED_ParameterType),       INTENT(IN   )  :: p                 !< Parameters
-   TYPE(ED_ContinuousStateType), INTENT(IN   )  :: x                 !< Continuous states
+   TYPE(ED_ContinuousStateType), INTENT(INOUT)  :: x                 !< Continuous states
    TYPE(ED_InputFile),           INTENT(IN   )  :: InputFileData     !< Data stored in the module's input file
    TYPE(ED_MiscVarType),         INTENT(INOUT)  :: m                 !< Misc variables (used to calculate initial position/orientation for meshes)
    INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat           !< Error status of the operation
@@ -10406,7 +10406,7 @@ SUBROUTINE ED_JacobianPInput( t, u, p, x, xd, z, OtherState, y, m, ErrStat, ErrM
    REAL(DbKi),                           INTENT(IN   )           :: t          !< Time in seconds at operating point
    TYPE(ED_InputType),                   INTENT(INOUT)           :: u          !< Inputs at operating point (may change to inout if a mesh copy is required)
    TYPE(ED_ParameterType),               INTENT(IN   )           :: p          !< Parameters
-   TYPE(ED_ContinuousStateType),         INTENT(IN   )           :: x          !< Continuous states at operating point
+   TYPE(ED_ContinuousStateType),         INTENT(INOUT)           :: x          !< Continuous states at operating point
    TYPE(ED_DiscreteStateType),           INTENT(IN   )           :: xd         !< Discrete states at operating point
    TYPE(ED_ConstraintStateType),         INTENT(IN   )           :: z          !< Constraint states at operating point
    TYPE(ED_OtherStateType),              INTENT(IN   )           :: OtherState !< Other states at operating point
@@ -10626,9 +10626,9 @@ SUBROUTINE ED_JacobianPContState( t, u, p, x, xd, z, OtherState, y, m, ErrStat, 
 !..................................................................................................................................
 
    REAL(DbKi),                           INTENT(IN   )           :: t          !< Time in seconds at operating point
-   TYPE(ED_InputType),                   INTENT(IN   )           :: u          !< Inputs at operating point (may change to inout if a mesh copy is required)
+   TYPE(ED_InputType),                   INTENT(INOUT)           :: u          !< Inputs at operating point (may change to inout if a mesh copy is required)
    TYPE(ED_ParameterType),               INTENT(IN   )           :: p          !< Parameters
-   TYPE(ED_ContinuousStateType),         INTENT(IN   )           :: x          !< Continuous states at operating point
+   TYPE(ED_ContinuousStateType),         INTENT(INOUT)           :: x          !< Continuous states at operating point
    TYPE(ED_DiscreteStateType),           INTENT(IN   )           :: xd         !< Discrete states at operating point
    TYPE(ED_ConstraintStateType),         INTENT(IN   )           :: z          !< Constraint states at operating point
    TYPE(ED_OtherStateType),              INTENT(IN   )           :: OtherState !< Other states at operating point
@@ -10820,7 +10820,7 @@ SUBROUTINE ED_JacobianPDiscState( t, u, p, x, xd, z, OtherState, y, m, ErrStat, 
    REAL(DbKi),                           INTENT(IN   )           :: t          !< Time in seconds at operating point
    TYPE(ED_InputType),                   INTENT(INOUT)           :: u          !< Inputs at operating point (may change to inout if a mesh copy is required)
    TYPE(ED_ParameterType),               INTENT(IN   )           :: p          !< Parameters
-   TYPE(ED_ContinuousStateType),         INTENT(IN   )           :: x          !< Continuous states at operating point
+   TYPE(ED_ContinuousStateType),         INTENT(INOUT)           :: x          !< Continuous states at operating point
    TYPE(ED_DiscreteStateType),           INTENT(IN   )           :: xd         !< Discrete states at operating point
    TYPE(ED_ConstraintStateType),         INTENT(IN   )           :: z          !< Constraint states at operating point
    TYPE(ED_OtherStateType),              INTENT(IN   )           :: OtherState !< Other states at operating point
@@ -10894,7 +10894,7 @@ SUBROUTINE ED_JacobianPConstrState( t, u, p, x, xd, z, OtherState, y, m, ErrStat
    REAL(DbKi),                           INTENT(IN   )           :: t          !< Time in seconds at operating point
    TYPE(ED_InputType),                   INTENT(INOUT)           :: u          !< Inputs at operating point (may change to inout if a mesh copy is required)
    TYPE(ED_ParameterType),               INTENT(IN   )           :: p          !< Parameters
-   TYPE(ED_ContinuousStateType),         INTENT(IN   )           :: x          !< Continuous states at operating point
+   TYPE(ED_ContinuousStateType),         INTENT(INOUT)           :: x          !< Continuous states at operating point
    TYPE(ED_DiscreteStateType),           INTENT(IN   )           :: xd         !< Discrete states at operating point
    TYPE(ED_ConstraintStateType),         INTENT(IN   )           :: z          !< Constraint states at operating point
    TYPE(ED_OtherStateType),              INTENT(IN   )           :: OtherState !< Other states at operating point
@@ -11238,7 +11238,7 @@ END SUBROUTINE ED_Init_Jacobian_x
 SUBROUTINE ED_Init_Jacobian( p, u, y, InitOut, ErrStat, ErrMsg)
 
    TYPE(ED_ParameterType)            , INTENT(INOUT) :: p                     !< parameters
-   TYPE(ED_InputType)                , INTENT(IN   ) :: u                     !< inputs
+   TYPE(ED_InputType)                , INTENT(INOUT) :: u                     !< inputs
    TYPE(ED_OutputType)               , INTENT(IN   ) :: y                     !< outputs
    TYPE(ED_InitOutputType)           , INTENT(INOUT) :: InitOut               !< Output for initialization routine   
    INTEGER(IntKi)                    , INTENT(  OUT) :: ErrStat               !< Error status of the operation
@@ -11710,9 +11710,9 @@ END SUBROUTINE Compute_dX
 SUBROUTINE ED_GetOP( t, u, p, x, xd, z, OtherState, y, m, ErrStat, ErrMsg, u_op, y_op, x_op, dx_op, xd_op, z_op, NeedTrimOP )
 
    REAL(DbKi),                           INTENT(IN   )           :: t          !< Time in seconds at operating point
-   TYPE(ED_InputType),                   INTENT(IN   )           :: u          !< Inputs at operating point (may change to inout if a mesh copy is required)
+   TYPE(ED_InputType),                   INTENT(INOUT)           :: u          !< Inputs at operating point (may change to inout if a mesh copy is required)
    TYPE(ED_ParameterType),               INTENT(IN   )           :: p          !< Parameters
-   TYPE(ED_ContinuousStateType),         INTENT(IN   )           :: x          !< Continuous states at operating point
+   TYPE(ED_ContinuousStateType),         INTENT(INOUT)           :: x          !< Continuous states at operating point
    TYPE(ED_DiscreteStateType),           INTENT(IN   )           :: xd         !< Discrete states at operating point
    TYPE(ED_ConstraintStateType),         INTENT(IN   )           :: z          !< Constraint states at operating point
    TYPE(ED_OtherStateType),              INTENT(IN   )           :: OtherState !< Other states at operating point
