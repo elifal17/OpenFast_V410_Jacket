@@ -13,7 +13,20 @@
 
 module ED_UserSubs
 contains
-   
+SUBROUTINE ReceiveMotionFromAbaqus(disp, vel, acc)
+  USE ISO_C_BINDING
+  USE NWTC_Library, ONLY: ReKi
+  IMPLICIT NONE
+
+  ! --- Giriş/Çıkış tanımları ---
+  REAL(ReKi), INTENT(OUT) :: disp(6), vel(6), acc(6)
+
+  ! --- Dummy/test değerleri ---
+  disp = (/ 0.0_ReKi, 0.0_ReKi, 0.0_ReKi, 0.0_ReKi, 0.0_ReKi, 0.0_ReKi /)
+  vel  = (/ 0.0_ReKi, 0.0_ReKi, 0.0_ReKi, 0.0_ReKi, 0.0_ReKi, 0.0_ReKi /)
+  acc  = (/ 0.0_ReKi, 0.0_ReKi, 0.0_ReKi, 0.0_ReKi, 0.0_ReKi, 0.0_ReKi /)
+
+END SUBROUTINE ReceiveMotionFromAbaqus  
 !=======================================================================
 SUBROUTINE UserRFrl ( RFrlDef, RFrlRate, ZTime, DirRoot, RFrlMom )
 
