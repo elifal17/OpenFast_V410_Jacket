@@ -73,9 +73,9 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, m, Interval, InitOut
 !..................................................................................................................................
 
    TYPE(ED_InitInputType),       INTENT(IN   )  :: InitInp     !< Input data for initialization routine
-   TYPE(ED_InputType),           INTENT(  OUT)  :: u           !< An initial guess for the input; input mesh must be defined
+   TYPE(ED_InputType),           INTENT(INOUT)  :: u           !< An initial guess for the input; input mesh must be defined
    TYPE(ED_ParameterType),       INTENT(  OUT)  :: p           !< Parameters
-   TYPE(ED_ContinuousStateType), INTENT(  OUT)  :: x           !< Initial continuous states
+   TYPE(ED_ContinuousStateType), INTENT(INOUT)  :: x           !< Initial continuous states
    TYPE(ED_DiscreteStateType),   INTENT(  OUT)  :: xd          !< Initial discrete states
    TYPE(ED_ConstraintStateType), INTENT(  OUT)  :: z           !< Initial guess of the constraint states
    TYPE(ED_OtherStateType),      INTENT(  OUT)  :: OtherState  !< Initial other states
@@ -236,7 +236,7 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, m, Interval, InitOut
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN                  
    
-
+      u%UseAbaqusMotion = .TRUE.
       !............................................................................................
       ! Define system output initializations (set up meshes) here:
       !............................................................................................
@@ -539,9 +539,9 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, m, ErrStat, ErrMsg )
 !..................................................................................................................................
 
    REAL(DbKi),                   INTENT(IN   )  :: t           !< Current simulation time in seconds
-   TYPE(ED_InputType),           INTENT(IN   )  :: u           !< Inputs at Time t
+   TYPE(ED_InputType),           INTENT(INOUT)  :: u           !< Inputs at Time t
    TYPE(ED_ParameterType),       INTENT(IN   )  :: p           !< Parameters
-   TYPE(ED_ContinuousStateType), INTENT(IN   )  :: x           !< Continuous states at t
+   TYPE(ED_ContinuousStateType), INTENT(INOUT)  :: x           !< Continuous states at t
    TYPE(ED_DiscreteStateType),   INTENT(IN   )  :: xd          !< Discrete states at t
    TYPE(ED_ConstraintStateType), INTENT(IN   )  :: z           !< Constraint states at t
    TYPE(ED_OtherStateType),      INTENT(IN   )  :: OtherState  !< Other states
@@ -614,6 +614,10 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, m, ErrStat, ErrMsg )
 
    LOGICAL, PARAMETER           :: UpdateValues  = .TRUE.                          ! determines if the OtherState values need to be updated
    TYPE(ED_ContinuousStateType) :: dxdt                                            ! Continuous state derivs at t
+   REAL(ReKi), PARAMETER        :: g = 9.80665_ReKi
+   REAL(ReKi), PARAMETER        :: TurbineMass = 566004.094_ReKi
+   REAL(ReKi)                   :: AbaqusLoad6
+   REAL(ReKi)                   :: WeightForce
 
          ! Initialize some output values
       ErrStat = ErrID_None
@@ -1848,7 +1852,27 @@ END IF
 
                
    RETURN
-   
+   IF (u%UseAbaqusMotion) THEN
+
+      ! Tower base reaksiyon kuvvet ve momentlerini ata:
+       y%AbaqusLoad6(1) = m%AllOuts( TwrBsFxt )
+       y%AbaqusLoad6(2) = m%AllOuts( TwrBsFyt )
+       y%AbaqusLoad6(3) = m%AllOuts( TwrBsFzt )
+       y%AbaqusLoad6(4) = m%AllOuts( TwrBsMxt )
+       y%AbaqusLoad6(5) = m%AllOuts( TwrBsMyt )
+       y%AbaqusLoad6(6) = m%AllOuts( TwrBsMzt )
+
+
+       ! (İsteğe bağlı) Z kuvvetinden türbin ağırlığını çıkar:
+        WeightForce = TurbineMass * g
+        y%AbaqusLoad6(3) = y%AbaqusLoad6(3) - WeightForce
+
+        OPEN(UNIT=100, FILE='tower_base_loads.txt', STATUS='UNKNOWN', ACTION='WRITE', POSITION='APPEND')
+        WRITE(100,*) (y%AbaqusLoad6(i), i=1,6)
+        CLOSE(100)  
+
+        CALL SendLoadsToAbaqus(y%AbaqusLoad6)
+   ENDIF
 
 END SUBROUTINE ED_CalcOutput
 !----------------------------------------------------------------------------------------------------------------------------------
@@ -1857,9 +1881,9 @@ SUBROUTINE ED_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, m, dxdt, ErrSta
 !..................................................................................................................................
 
    REAL(DbKi),                   INTENT(IN   )  :: t           !< Current simulation time in seconds
-   TYPE(ED_InputType),           INTENT(IN   )  :: u           !< Inputs at t
+   TYPE(ED_InputType),           INTENT(INOUT)  :: u           !< Inputs at t
    TYPE(ED_ParameterType),       INTENT(IN   )  :: p           !< Parameters
-   TYPE(ED_ContinuousStateType), INTENT(IN   )  :: x           !< Continuous states at t
+   TYPE(ED_ContinuousStateType), INTENT(INOUT)  :: x           !< Continuous states at t
    TYPE(ED_DiscreteStateType),   INTENT(IN   )  :: xd          !< Discrete states at t
    TYPE(ED_ConstraintStateType), INTENT(IN   )  :: z           !< Constraint states at t
    TYPE(ED_OtherStateType),      INTENT(IN   )  :: OtherState  !< Other states
@@ -1927,7 +1951,35 @@ SUBROUTINE ED_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, m, dxdt, ErrSta
    m%RtHS%GBoxEffFac  = p%GBoxEff**OtherState%SgnPrvLSTQ      ! = GBoxEff if SgnPrvLSTQ = 1 OR 1/GBoxEff if SgnPrvLSTQ = -1
    
    CALL FillAugMat( p, x, m%CoordSys, u, OtherState%HSSBrTrq, m%RtHS, m%AugMat )
-   
+
+   IF (u%UseAbaqusMotion) THEN
+         CALL ReceiveMotionFromAbaqus(u%AbaqusDisp, u%AbaqusVel, u%AbaqusAcc)
+
+      ! OPEN(UNIT=10, FILE='output.txt', STATUS='UNKNOWN', ACTION='WRITE', POSITION='APPEND')
+
+      ! WRITE(10, '(A)') 'Displacement from Abaqus:'
+      ! DO i = 1, 6
+         ! WRITE(10, '(F10.4)') u%AbaqusDisp(i)
+      ! END DO
+
+      ! WRITE(10, '(A)') 'Velocity from Abaqus:'
+      ! DO i = 1, 6
+         ! WRITE(10, '(F10.4)') u%AbaqusVel(i)
+      ! END DO
+
+      ! WRITE(10, '(A)') 'Acceleration from Abaqus:'
+      ! DO i = 1, 6
+         ! WRITE(10, '(F10.4)') u%AbaqusAcc(i)
+      ! END DO
+
+      ! WRITE(10,*) '-------------------------------'  ! Her zaman adımı için ayraç
+
+      ! CLOSE(10)
+
+      m%QD2T(1:6) = u%AbaqusAcc
+      x%QDT(1:6)  = u%AbaqusVel
+      x%QT(1:6)   = u%AbaqusDisp
+   ENDIF
 
    ! Invert the matrix to solve for the accelerations. The accelerations are returned by Gauss() in the first NActvDOF elements
    !   of the solution vector, SolnVec(). These are transfered to the proper index locations of the acceleration vector QD2T()
