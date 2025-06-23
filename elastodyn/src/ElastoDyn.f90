@@ -1979,6 +1979,12 @@ SUBROUTINE ED_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, m, dxdt, ErrSta
       m%QD2T(1:6) = u%AbaqusAcc
       x%QDT(1:6)  = u%AbaqusVel
       x%QT(1:6)   = u%AbaqusDisp
+      u%PlatformPtMesh%TranslationDisp(:,1) = u%AbaqusDisp(1:3)
+      u%PlatformPtMesh%RotationDisp(:,1)    = u%AbaqusDisp(4:6)
+      u%PlatformPtMesh%TranslationVel(:,1)  = u%AbaqusVel(1:3)
+      u%PlatformPtMesh%RotationVel(:,1)     = u%AbaqusVel(4:6)
+      u%PlatformPtMesh%TranslationAcc(:,1)  = u%AbaqusAcc(1:3)
+      u%PlatformPtMesh%RotationAcc(:,1)     = u%AbaqusAcc(4:6)
    ENDIF
 
    ! Invert the matrix to solve for the accelerations. The accelerations are returned by Gauss() in the first NActvDOF elements
