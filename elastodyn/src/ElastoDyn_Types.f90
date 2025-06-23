@@ -842,6 +842,10 @@ IMPLICIT NONE
     REAL(ReKi)  :: YawMom = 0.0_ReKi      !< Torque transmitted through the yaw bearing [N-m]
     REAL(ReKi)  :: GenTrq = 0.0_ReKi      !< Electrical generator torque [N-m]
     REAL(ReKi)  :: HSSBrTrqC = 0.0_ReKi      !< Commanded HSS brake torque [N-m]
+    REAL(ReKi)  :: AbaqusDisp(6)
+    REAL(ReKi)  :: AbaqusVel(6)
+    REAL(ReKi)  :: AbaqusAcc(6)
+	LOGICAL     :: UseAbaqusMotio
   END TYPE ED_InputType
 ! =======================
 ! =========  ED_OutputType  =======
@@ -881,6 +885,7 @@ IMPLICIT NONE
     REAL(ReKi)  :: LSShftFxa = 0.0_ReKi      !< Rotating low-speed shaft force x [N]
     REAL(ReKi)  :: LSShftFys = 0.0_ReKi      !< Nonrotating low-speed shaft force y [N]
     REAL(ReKi)  :: LSShftFzs = 0.0_ReKi      !< Nonrotating low-speed shaft force z [N]
+    REAL(ReKi)  :: AbaqusLoad6(6)
   END TYPE ED_OutputType
 ! =======================
 CONTAINS
